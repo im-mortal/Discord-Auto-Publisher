@@ -4,7 +4,7 @@ module.exports = async bot => {
 		bot.user
 			.setPresence({
 				activity: {
-					name: `${bot.guilds.cache.size} servers`,
+					name: `${bot.guilds.cache.size} server${ bot.guilds.cache.size == 1 ? '' : 's' }`,
 					type: 'WATCHING',
 				},
 				status: 'online',
@@ -33,5 +33,5 @@ module.exports = async bot => {
 			totalMembers += members;
 		}
 	});
-	logger.log(`Connected! Publishing on ${bot.guilds.cache.size} servers with ${totalMembers.toLocaleString('de-DE')} total members.`, 'ready');
+	logger.log(`Connected! Publishing on ${bot.guilds.cache.size} server${ bot.guilds.cache.size == 1 ? '' : 's' } with ${totalMembers.toLocaleString('en-US')} total member${ totalMembers.toLocaleString('en-US') == 1 ? '' : 's' }.`, 'ready');
 };
