@@ -16,5 +16,5 @@ WORKDIR /app
 COPY --from=build /usr/src .
 COPY --chown=node:node . .
 USER node
-ENV TOKEN='BOT_TOKEN'
+ENV BOT_TOKEN='BOT_TOKEN'
 CMD ["node", "bot.js"]
