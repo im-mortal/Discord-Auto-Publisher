@@ -3,10 +3,11 @@ module.exports = async bot => {
 
 	logger.log('Connected!', 'ready');
 
-	function presence() {
+	async function presence() {
 		const servers = bot.guilds.cache.size.toLocaleString(config.log.locale);
 
-		logger.log(`Updating presence. Servers: ${servers}`);
+		logger.log(`Updating presence. Servers: ${servers}`, 'debug');
+
 		bot.user
 			.setPresence({
 				activity: {
@@ -26,19 +27,31 @@ module.exports = async bot => {
 		presence();
 	}, config.presenceInterval * 60 * 1000);
 
-	let totalMembers = 0;
+	// Checks for blacklisted guilds and leaves them
+	(async function() {
+		logger.log('Checking for blacklisted guilds.', 'debug');
 
-	logger.log('Calculating total members across all servers.', 'debug');
-	logger.log('Checking for blacklisted guilds.');
-	bot.guilds.cache.forEach(guild => {
-		const { name, id, memberCount: members } = guild;
-		if (config.serversBlacklist.includes(id)) {
-			logger.log(`Blacklisted guild: "${name}" (${id}). Leaving.`);
-			guild.leave();
+		for (const id of config.serversBlacklist) {
+			const guild = bot.guilds.cache.get(id);
+			if (guild) {
+				guild.leave()
+					.then(() => logger.log(`Blacklisted guild: "${guild.name}" (${guild.id}). Leaving.`))
+					.catch(error => logger.log(error, 'error'));
+			}
 		}
-		else {
-			totalMembers += members;
-		}
-	});
-	logger.log(`Publishing on ${bot.guilds.cache.size} servers with ${totalMembers.toLocaleString(config.log.locale)} total member${totalMembers > 1 ? 's' : ''}.`, 'info');
+	})();
+
+	// Calculates all members across all guilds
+	let totalMembers = 0;
+	(async function() {
+		logger.log('Calculating total members across all servers.', 'debug');
+
+		bot.guilds.cache.forEach(guild => {
+			const { id, memberCount } = guild;
+			if (!config.serversBlacklist.includes(id)) totalMembers += memberCount;
+		});
+
+		logger.log(`Publishing on ${bot.guilds.cache.size} servers with ${totalMembers.toLocaleString(config.log.locale)} total members.`, 'info');
+	})();
+
 };
